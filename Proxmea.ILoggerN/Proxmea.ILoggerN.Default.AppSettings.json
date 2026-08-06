@@ -17,10 +17,9 @@
         "fileName": "${basedir}/logs/app.log",
         "archiveFileName": "${basedir}/logs/archive/app.{#}.log.zip",
         "archiveEvery": "Day", // default: Day
-        "archiveNumbering": "DateAndSequence", // default: Sequence
+        "archiveNumbering": "DateAndSequence", // default: Sequence. Deprecated by NLog v6 in favour of archiveSuffixFormat, but kept so archive file names don't change under existing installations
         "maxArchiveFiles": 7, // default: 0 (unlimited)
-        "enableArchiveFileCompression": true, // default: false
-        "concurrentWrites": true, // default: true
+        "enableArchiveFileCompression": true, // default: false. Handled by Proxmea.ILoggerN since NLog v6 removed it. Requires archiveFileName to end in .zip or .gz
         "keepFileOpen": true, // default: false
         "layout": "${longdate} ${processname} ${threadid:uppercase=true:padding=3} ${level:padding=5} ${callsite} ${message} ${exception:format=type,message,StackTrace:separator=\r\n} ${all-event-properties:includeScopeProperties=true}"
       },

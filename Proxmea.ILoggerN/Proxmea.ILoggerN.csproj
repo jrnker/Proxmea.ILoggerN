@@ -15,7 +15,7 @@ The package is designed for easy integration with ASP.NET Core projects and leve
 It's utilizing NLog as the logging provider, mainly because of its high performance.
     </Description>
     <RepositoryUrl>https://github.com/jrnker/Proxmea.ILoggerN</RepositoryUrl>
-    <AssemblyVersion>1.1.5.25259</AssemblyVersion>
+    <AssemblyVersion>1.2.0.26218</AssemblyVersion>
     <Version>$(AssemblyVersion)</Version>
     <Copyright>Proxmea AB - MPL-2.0</Copyright>
     <PackageLicenseFile>license.md</PackageLicenseFile>

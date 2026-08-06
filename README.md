@@ -17,6 +17,7 @@ It's utilizing NLog as the logging provider, mainly because of its high performa
 - Allows you to retrieve and use loggers anywhere in your app, including static contexts.
 - Supports logging to both console, file and Elastic by default, with configuration overrides per environment.
 - Provides helpers for adding custom properties to log entries (e.g., application version).
+- Keeps rolled log files compressed, which NLog itself no longer does. See [Archive compression](#archive-compression).
 - All NLog settings are overridable in your own appsettings.json
 
 ## Usage
@@ -75,6 +76,34 @@ public class HelloWorldController : Controller
 
      This is where you'd put your application specific minimal NLog config.
 
+## Archive compression
+
+The default file target rolls over daily and keeps the rolled files compressed:
+
+```
+"file": {
+  "type": "File",
+  "fileName": "${basedir}/logs/app.log",
+  "archiveFileName": "${basedir}/logs/archive/app.{#}.log.zip",
+  "enableArchiveFileCompression": true
+}
+```
+
+NLog v6 removed `enableArchiveFileCompression` from its file target, and because unknown properties are ignored, 
+configurations using it kept rolling over but stopped compressing - typically leaving plain text files named `.zip`. 
+Proxmea.ILoggerN handles the option itself, so the setting means what it says again. Nothing changes on your side; 
+keep configuring it exactly as before.
+
+Worth knowing:
+
+- Compression happens shortly after a file is rolled, not during rollover, so logging is never held up by it.
+- Archives keep the name and timestamps NLog gave them, which leaves `maxArchiveFiles` and `maxArchiveDays` retention working.
+- `archiveFileName` decides the format: `.zip` produces a zip, `.gz` a gzip. Any other extension is left uncompressed, 
+  since compressing would mean renaming the file out of reach of NLog's retention. A warning is logged if that happens.
+- Several applications may share one archive directory; they will not compress each other's files twice or corrupt them.
+- Archives that earlier versions left uncompressed are picked up and compressed on the first sweep after the upgrade.
+- Set `"enableArchiveFileCompression": false` in your own appsettings to turn it off.
+
 ## Sample output from `HelloWorld`
 ```
 2025-06-11 18:41:54.2293 HelloWorld  INFO HelloWorld.Program Starting
@@ -86,6 +115,7 @@ public class HelloWorldController : Controller
 # Changelog
 | Version | Description |
 |---------|-------------|
+| v1.2.0.26218 (2026-08-06) | Fixed `enableArchiveFileCompression` silently doing nothing since the move to NLog v6, which left archives as plain text named `.zip`. The option is now handled by the package itself. |
 | v1.1.5.25259 (2025-09-16)| Added default (optional) logging of unhandled exceptions. Changed to work with non-web apps. Updated NuGets. |
 | v1.0.62.25174 (2025-06-23) | Changed Elastic layout to be async to prevent blocking the main thread on Elastic failure. Updated default console layout to colour output. |
 | v1.0.49.251620 (2025-06-11) | Initial Release |

@@ -59,6 +59,10 @@ namespace Proxmea.ILoggerN
                     MergeNullValueHandling = MergeNullValueHandling.Merge
                 });
 
+            // NLog v6 dropped file target compression, so we take the option over here. This also strips it from
+            // the merged config, keeping NLog from tripping over an unknown property.
+            ArchiveFileCompression.Initialize(mergedNLog);
+
             // Now, create a temp file for the merged config
             var mergedConfigPath = Path.Combine(Path.GetTempPath(), $"Proxmea.ILoggerN.Merged.{Guid.NewGuid()}.json");
             var mergedRoot = new JObject { ["NLog"] = mergedNLog };
@@ -84,7 +88,11 @@ namespace Proxmea.ILoggerN
             builder.UseNLog();
 
             // Shutdown nicely upon exit
-            AppDomain.CurrentDomain.ProcessExit += (_, _) => LogManager.Shutdown();
+            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+            {
+                ArchiveFileCompression.Stop();
+                LogManager.Shutdown();
+            };
         }
         private static void UnhandledTaskExceptionTrapper(object? sender, UnobservedTaskExceptionEventArgs e) =>
             UnhandledExceptionTrapper(sender, new UnhandledExceptionEventArgs(e.Exception, false));
